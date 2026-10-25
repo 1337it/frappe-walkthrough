@@ -1,0 +1,32 @@
+{
+ "doctype": "DocType",
+ "name": "Walkthrough Settings Language",
+ "module": "Frappe Walkthrough",
+ "creation": "2026-10-25 10:00:00.000000",
+ "modified": "2026-10-25 10:00:00.000000",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "engine": "InnoDB",
+ "custom": 0,
+ "fields": [
+  {
+   "fieldname": "language",
+   "fieldtype": "Link",
+   "label": "Language",
+   "options": "Language",
+   "in_list_view": 1,
+   "reqd": 1
+  }
+ ],
+ "field_order": [
+  "language"
+ ],
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0,
+ "row_format": "Dynamic",
+ "istable": 1,
+ "editable_grid": 1
+}

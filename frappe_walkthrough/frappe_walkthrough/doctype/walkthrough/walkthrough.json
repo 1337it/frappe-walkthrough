@@ -1,0 +1,193 @@
+{
+ "doctype": "DocType",
+ "name": "Walkthrough",
+ "module": "Frappe Walkthrough",
+ "creation": "2026-10-25 10:00:00.000000",
+ "modified": "2026-10-25 10:00:00.000000",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "engine": "InnoDB",
+ "custom": 0,
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "key",
+   "fieldtype": "Data",
+   "label": "Key",
+   "reqd": 1,
+   "unique": 1,
+   "set_only_once": 1,
+   "description": "Stable ID, used by the Ask box and by links to a walkthrough"
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Data",
+   "label": "Category",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "label": "Kind",
+   "options": "Process\nCreate\nRead\nReport\nBoard\nTour",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "default": "Process"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "default": "1",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Int",
+   "label": "Sort order"
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Source",
+   "options": "Manual\nGenerated\nApp\nForm Tour",
+   "default": "Manual",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "source_app",
+   "fieldtype": "Data",
+   "label": "From app",
+   "read_only": 1
+  },
+  {
+   "fieldname": "is_edited",
+   "fieldtype": "Check",
+   "label": "Edited by hand",
+   "read_only": 1,
+   "description": "Edited after it was generated: Load will not overwrite it"
+  },
+  {
+   "fieldname": "sb_about",
+   "fieldtype": "Section Break",
+   "label": "About"
+  },
+  {
+   "fieldname": "summary",
+   "fieldtype": "Small Text",
+   "label": "Summary",
+   "description": "One line on what it shows. The Ask box matches questions against this - say it in the words people use."
+  },
+  {
+   "fieldname": "contexts",
+   "fieldtype": "Small Text",
+   "label": "Shown on",
+   "description": "One per line: DocType:Sales Invoice, Workspace:Selling, Report:General Ledger or Page:&lt;page name&gt;"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "source_doctype",
+   "fieldtype": "Link",
+   "label": "Made from DocType",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_report",
+   "fieldtype": "Link",
+   "label": "Made from Report",
+   "options": "Report",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sb_steps",
+   "fieldtype": "Section Break",
+   "label": "Steps"
+  },
+  {
+   "fieldname": "steps",
+   "fieldtype": "Table",
+   "label": "Steps",
+   "options": "Walkthrough Step"
+  },
+  {
+   "fieldname": "sb_tr",
+   "fieldtype": "Section Break",
+   "label": "Translations",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "translations",
+   "fieldtype": "JSON",
+   "label": "Title and summary translations",
+   "description": "{\"ar\": {\"title\": \"…\", \"summary\": \"…\"}}"
+  }
+ ],
+ "field_order": [
+  "title",
+  "key",
+  "category",
+  "kind",
+  "cb1",
+  "enabled",
+  "sort_order",
+  "source",
+  "source_app",
+  "is_edited",
+  "sb_about",
+  "summary",
+  "contexts",
+  "cb2",
+  "source_doctype",
+  "source_report",
+  "sb_steps",
+  "steps",
+  "sb_tr",
+  "translations"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "All",
+   "read": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0,
+ "row_format": "Dynamic",
+ "autoname": "field:key",
+ "title_field": "title",
+ "show_title_field_in_link": 1,
+ "search_fields": "category,kind",
+ "naming_rule": "By fieldname",
+ "allow_rename": 0
+}

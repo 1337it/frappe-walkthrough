@@ -1,0 +1,510 @@
+{
+ "doctype": "DocType",
+ "name": "Walkthrough Settings",
+ "module": "Frappe Walkthrough",
+ "creation": "2026-10-25 10:00:00.000000",
+ "modified": "2026-10-25 10:00:00.000000",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "engine": "InnoDB",
+ "custom": 0,
+ "fields": [
+  {
+   "fieldname": "tab_content",
+   "fieldtype": "Tab Break",
+   "label": "Content"
+  },
+  {
+   "fieldname": "sb_load",
+   "fieldtype": "Section Break",
+   "label": "Walkthroughs"
+  },
+  {
+   "fieldname": "status_html",
+   "fieldtype": "HTML",
+   "label": "Status"
+  },
+  {
+   "fieldname": "load_walkthroughs",
+   "fieldtype": "Button",
+   "label": "Load walkthroughs",
+   "description": "Builds walkthroughs for everything in scope and adds those your apps ship. Safe to run again: walkthroughs edited by hand are kept."
+  },
+  {
+   "fieldname": "cb_load",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "import_form_tours",
+   "fieldtype": "Button",
+   "label": "Import Form Tours",
+   "description": "Turns Frappe's own Form Tours into walkthroughs."
+  },
+  {
+   "fieldname": "remove_generated",
+   "fieldtype": "Button",
+   "label": "Remove generated",
+   "description": "Deletes generated walkthroughs that were not edited by hand."
+  },
+  {
+   "fieldname": "sb_scope",
+   "fieldtype": "Section Break",
+   "label": "What to cover"
+  },
+  {
+   "fieldname": "modules",
+   "fieldtype": "Table MultiSelect",
+   "label": "Modules",
+   "options": "Walkthrough Settings Module",
+   "description": "Leave empty for every module of your installed apps (Frappe and ERPNext core are added by the tick below)."
+  },
+  {
+   "fieldname": "include_core",
+   "fieldtype": "Check",
+   "label": "Include Frappe and ERPNext core modules"
+  },
+  {
+   "fieldname": "extra_doctypes",
+   "fieldtype": "Table MultiSelect",
+   "label": "Also cover these DocTypes",
+   "options": "Walkthrough Settings DocType"
+  },
+  {
+   "fieldname": "exclude_doctypes",
+   "fieldtype": "Table MultiSelect",
+   "label": "Never cover these DocTypes",
+   "options": "Walkthrough Settings DocType"
+  },
+  {
+   "fieldname": "no_create_doctypes",
+   "fieldtype": "Table MultiSelect",
+   "label": "No Create walkthrough for these",
+   "options": "Walkthrough Settings DocType",
+   "description": "Records the system writes, or that already have a hand-written Create walkthrough. They still get a Find-and-read one."
+  },
+  {
+   "fieldname": "cb_scope",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "only_in_workspaces",
+   "fieldtype": "Check",
+   "label": "Only DocTypes and reports listed in a workspace",
+   "default": "1",
+   "description": "What people can actually reach from the sidebar. Untick to cover every DocType of the chosen modules."
+  },
+  {
+   "fieldname": "include_create",
+   "fieldtype": "Check",
+   "label": "Create walkthroughs",
+   "default": "1"
+  },
+  {
+   "fieldname": "include_read",
+   "fieldtype": "Check",
+   "label": "Find-and-read walkthroughs",
+   "default": "1"
+  },
+  {
+   "fieldname": "include_reports",
+   "fieldtype": "Check",
+   "label": "Report walkthroughs",
+   "default": "1"
+  },
+  {
+   "fieldname": "max_inputs",
+   "fieldtype": "Int",
+   "label": "Fields to ask for in a Create walkthrough",
+   "default": "6"
+  },
+  {
+   "fieldname": "include_tour",
+   "fieldtype": "Check",
+   "label": "The \"Find your way around\" tour",
+   "default": "1"
+  },
+  {
+   "fieldname": "sb_lang",
+   "fieldtype": "Section Break",
+   "label": "Languages"
+  },
+  {
+   "fieldname": "languages",
+   "fieldtype": "Table MultiSelect",
+   "label": "Languages",
+   "options": "Walkthrough Settings Language",
+   "description": "Captions are built in each of these, using Frappe's own translations. Empty: the system language and the languages your users have chosen."
+  },
+  {
+   "fieldname": "tab_ai",
+   "fieldtype": "Tab Break",
+   "label": "AI"
+  },
+  {
+   "fieldname": "sb_jev",
+   "fieldtype": "Section Break",
+   "label": "Ask box",
+   "description": "Lets people ask \"how do I…\" in their own words. TypeSafe's Jev picks the walkthrough that answers it - it chooses from your list and never writes text."
+  },
+  {
+   "fieldname": "enable_ask",
+   "fieldtype": "Check",
+   "label": "Show the Ask box",
+   "default": "1"
+  },
+  {
+   "fieldname": "jev_key",
+   "fieldtype": "Password",
+   "label": "TypeSafe Jev API key"
+  },
+  {
+   "fieldname": "min_confidence",
+   "fieldtype": "Float",
+   "label": "Play automatically at confidence",
+   "default": "0.6",
+   "description": "Below this the match is offered as a suggestion."
+  },
+  {
+   "fieldname": "test_jev",
+   "fieldtype": "Button",
+   "label": "Test the Ask box"
+  },
+  {
+   "fieldname": "sb_writer",
+   "fieldtype": "Section Break",
+   "label": "Writer (optional)",
+   "description": "A language model used only when you press Load: to write one-line summaries and to translate hand-written captions. Never called while people use the desk."
+  },
+  {
+   "fieldname": "writer_provider",
+   "fieldtype": "Select",
+   "label": "Provider",
+   "options": "\nOpenAI\nAzure OpenAI\nAnthropic\nOpenAI-compatible"
+  },
+  {
+   "fieldname": "writer_model",
+   "fieldtype": "Data",
+   "label": "Model",
+   "depends_on": "writer_provider",
+   "description": "e.g. gpt-5.6, claude-sonnet-5-5; for Azure the deployment name"
+  },
+  {
+   "fieldname": "writer_api_key",
+   "fieldtype": "Password",
+   "label": "API key",
+   "depends_on": "writer_provider"
+  },
+  {
+   "fieldname": "writer_base_url",
+   "fieldtype": "Data",
+   "label": "Endpoint",
+   "depends_on": "eval:['Azure OpenAI','OpenAI-compatible'].includes(doc.writer_provider)",
+   "description": "Azure: https://&lt;resource&gt;.openai.azure.com · OpenAI-compatible: the base URL ending in /v1"
+  },
+  {
+   "fieldname": "cb_writer",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ai_summaries",
+   "fieldtype": "Check",
+   "label": "Write summaries",
+   "default": "1",
+   "depends_on": "writer_provider"
+  },
+  {
+   "fieldname": "ai_translations",
+   "fieldtype": "Check",
+   "label": "Translate captions",
+   "default": "1",
+   "depends_on": "writer_provider"
+  },
+  {
+   "fieldname": "test_writer",
+   "fieldtype": "Button",
+   "label": "Test the writer",
+   "depends_on": "writer_provider"
+  },
+  {
+   "fieldname": "tab_design",
+   "fieldtype": "Tab Break",
+   "label": "Design"
+  },
+  {
+   "fieldname": "sb_button",
+   "fieldtype": "Section Break",
+   "label": "Button"
+  },
+  {
+   "fieldname": "button_label",
+   "fieldtype": "Data",
+   "label": "Label",
+   "default": "Walkthrough"
+  },
+  {
+   "fieldname": "show_button",
+   "fieldtype": "Check",
+   "label": "Show the button",
+   "default": "1"
+  },
+  {
+   "fieldname": "roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Only for these roles",
+   "options": "Walkthrough Settings Role",
+   "description": "Empty: every desk user."
+  },
+  {
+   "fieldname": "cb_button",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "on_workspaces",
+   "fieldtype": "Check",
+   "label": "On workspaces",
+   "default": "1"
+  },
+  {
+   "fieldname": "on_lists",
+   "fieldtype": "Check",
+   "label": "On lists",
+   "default": "1"
+  },
+  {
+   "fieldname": "on_forms",
+   "fieldtype": "Check",
+   "label": "On forms",
+   "default": "1"
+  },
+  {
+   "fieldname": "on_reports",
+   "fieldtype": "Check",
+   "label": "On reports",
+   "default": "1"
+  },
+  {
+   "fieldname": "on_pages",
+   "fieldtype": "Check",
+   "label": "On other pages",
+   "default": "1"
+  },
+  {
+   "fieldname": "sb_panel",
+   "fieldtype": "Section Break",
+   "label": "Panel"
+  },
+  {
+   "fieldname": "panel_side",
+   "fieldtype": "Select",
+   "label": "Side",
+   "options": "Right\nLeft",
+   "default": "Right"
+  },
+  {
+   "fieldname": "panel_width",
+   "fieldtype": "Int",
+   "label": "Width (px)",
+   "default": "400"
+  },
+  {
+   "fieldname": "cb_panel",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "accent_color",
+   "fieldtype": "Color",
+   "label": "Accent",
+   "default": "#2563eb"
+  },
+  {
+   "fieldname": "font_family",
+   "fieldtype": "Data",
+   "label": "Font",
+   "description": "CSS font-family; empty uses the desk's font"
+  },
+  {
+   "fieldname": "sb_cursor",
+   "fieldtype": "Section Break",
+   "label": "Cursor and highlight"
+  },
+  {
+   "fieldname": "cursor_color",
+   "fieldtype": "Color",
+   "label": "Cursor",
+   "default": "#1b1c1e"
+  },
+  {
+   "fieldname": "cursor_size",
+   "fieldtype": "Int",
+   "label": "Cursor size (px)",
+   "default": "26"
+  },
+  {
+   "fieldname": "cb_cursor",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ring_color",
+   "fieldtype": "Color",
+   "label": "Highlight ring",
+   "default": "#2563eb"
+  },
+  {
+   "fieldname": "dim_percent",
+   "fieldtype": "Percent",
+   "label": "Dim the rest of the page",
+   "default": "14"
+  },
+  {
+   "fieldname": "sb_caption",
+   "fieldtype": "Section Break",
+   "label": "Caption"
+  },
+  {
+   "fieldname": "caption_bg",
+   "fieldtype": "Color",
+   "label": "Background",
+   "default": "#1b1c1e"
+  },
+  {
+   "fieldname": "caption_text",
+   "fieldtype": "Color",
+   "label": "Text",
+   "default": "#ffffff"
+  },
+  {
+   "fieldname": "cb_caption",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "caption_width",
+   "fieldtype": "Int",
+   "label": "Width (px)",
+   "default": "340"
+  },
+  {
+   "fieldname": "radius",
+   "fieldtype": "Int",
+   "label": "Corner radius (px)",
+   "default": "12"
+  },
+  {
+   "fieldname": "sb_motion",
+   "fieldtype": "Section Break",
+   "label": "Motion"
+  },
+  {
+   "fieldname": "speed",
+   "fieldtype": "Select",
+   "label": "Speed",
+   "options": "Slow\nNormal\nFast",
+   "default": "Normal"
+  },
+  {
+   "fieldname": "reduced_motion",
+   "fieldtype": "Select",
+   "label": "Reduced motion",
+   "options": "Follow the device\nAlways\nNever",
+   "default": "Follow the device"
+  },
+  {
+   "fieldname": "cb_motion",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "preview",
+   "fieldtype": "Button",
+   "label": "Preview the design"
+  }
+ ],
+ "field_order": [
+  "tab_content",
+  "sb_load",
+  "status_html",
+  "load_walkthroughs",
+  "cb_load",
+  "import_form_tours",
+  "remove_generated",
+  "sb_scope",
+  "modules",
+  "include_core",
+  "extra_doctypes",
+  "exclude_doctypes",
+  "no_create_doctypes",
+  "cb_scope",
+  "only_in_workspaces",
+  "include_create",
+  "include_read",
+  "include_reports",
+  "max_inputs",
+  "include_tour",
+  "sb_lang",
+  "languages",
+  "tab_ai",
+  "sb_jev",
+  "enable_ask",
+  "jev_key",
+  "min_confidence",
+  "test_jev",
+  "sb_writer",
+  "writer_provider",
+  "writer_model",
+  "writer_api_key",
+  "writer_base_url",
+  "cb_writer",
+  "ai_summaries",
+  "ai_translations",
+  "test_writer",
+  "tab_design",
+  "sb_button",
+  "button_label",
+  "show_button",
+  "roles",
+  "cb_button",
+  "on_workspaces",
+  "on_lists",
+  "on_forms",
+  "on_reports",
+  "on_pages",
+  "sb_panel",
+  "panel_side",
+  "panel_width",
+  "cb_panel",
+  "accent_color",
+  "font_family",
+  "sb_cursor",
+  "cursor_color",
+  "cursor_size",
+  "cb_cursor",
+  "ring_color",
+  "dim_percent",
+  "sb_caption",
+  "caption_bg",
+  "caption_text",
+  "cb_caption",
+  "caption_width",
+  "radius",
+  "sb_motion",
+  "speed",
+  "reduced_motion",
+  "cb_motion",
+  "preview"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0,
+ "row_format": "Dynamic",
+ "issingle": 1
+}

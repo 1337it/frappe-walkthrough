@@ -1,0 +1,23 @@
+[project]
+name = "frappe_walkthrough"
+authors = [
+    { name = "Leet IT Solutions", email = "dev@leet.ae"}
+]
+description = "Animated, AI-assisted walkthroughs for any Frappe / ERPNext desk"
+requires-python = ">=3.10"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = [
+    # frappe (v15 or v16) is installed and managed by bench.
+]
+
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "tab"

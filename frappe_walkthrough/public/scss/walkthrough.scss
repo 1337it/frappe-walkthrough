@@ -1,0 +1,246 @@
+/* Frappe Walkthrough (walkthrough.js): the button, the panel, and the stage -
+ * cursor, click ripple, spotlight ring and caption. Colours and sizes come
+ * from Walkthrough Settings as --wt-* variables; these are the defaults. */
+
+:root {
+	--wt-accent: #2563eb;
+	--wt-font: var(--font-stack, Inter, system-ui, sans-serif);
+	--wt-panel-width: 400px;
+	--wt-cursor: #1b1c1e;
+	--wt-ring: var(--wt-accent);
+	--wt-dim: rgba(0, 0, 0, .14);
+	--wt-cap-bg: #1b1c1e;
+	--wt-cap-text: #fff;
+	--wt-cap-width: 340px;
+	--wt-radius: 12px;
+}
+
+.wt-btn {
+	display: inline-flex; align-items: center; gap: 6px;
+	margin-right: 8px;
+}
+.wt-btn svg { color: var(--wt-accent); }
+
+/* ---- panel ---------------------------------------------------------- */
+.wt-panel {
+	position: fixed; top: 16px; right: 16px; bottom: 16px;
+	width: var(--wt-panel-width); max-width: calc(100vw - 32px);
+	z-index: 1060;
+	background: var(--card-bg, #fff);
+	border: 1px solid var(--border-color, #e6e2da);
+	border-radius: calc(var(--wt-radius) + 2px);
+	box-shadow: 0 18px 50px rgba(27, 28, 30, .16);
+	display: flex; flex-direction: column;
+	font-family: var(--wt-font);
+	animation: wt-in .18s ease-out;
+}
+.wt-panel[hidden] { display: none; }
+@keyframes wt-in { from { opacity: 0; transform: translateX(12px); } }
+
+.wt-head {
+	display: flex; justify-content: space-between; align-items: flex-start;
+	padding: 18px 18px 10px;
+}
+.wt-kicker { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted, #7a7e85); }
+.wt-where { font: 600 17px/1.25 var(--wt-font); color: var(--text-color, #1b1c1e); margin-top: 2px; }
+.wt-x { border: 0; background: none; font-size: 22px; line-height: 1; color: var(--text-muted, #7a7e85); cursor: pointer; padding: 0 4px; }
+
+.wt-ask { padding: 4px 18px 12px; display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.wt-ask[hidden] { display: none; }
+.wt-ask input {
+	height: 36px; padding: 0 12px; font-size: 13px;
+	border: 1px solid var(--border-color, #e0dcd4); border-radius: 8px; background: #fff;
+}
+.wt-ask input:focus { outline: none; border-color: var(--wt-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--wt-accent) 14%, transparent); }
+.wt-ask button {
+	height: 36px; padding: 0 14px; border: 0; border-radius: 8px;
+	background: var(--wt-accent); color: #fff; font-weight: 500; font-size: 13px; cursor: pointer;
+}
+.wt-ask.is-busy button { opacity: .6; pointer-events: none; }
+.wt-ask-note { grid-column: 1 / -1; font-size: 12px; color: var(--text-muted, #7a7e85); min-height: 16px; }
+
+.wt-list { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 10px 14px; }
+.wt-empty { padding: 24px 10px; color: var(--text-muted, #7a7e85); font-size: 13px; }
+.wt-item {
+	width: 100%; text-align: left; cursor: pointer;
+	display: grid; grid-template-columns: 26px 1fr auto 18px; align-items: center; gap: 10px;
+	padding: 11px 10px; margin-bottom: 2px;
+	border: 1px solid transparent; border-radius: 10px; background: none;
+}
+.wt-item:hover { background: var(--control-bg, #f6f4f0); }
+.wt-item.is-match { border-color: var(--wt-accent); background: color-mix(in srgb, var(--wt-accent) 6%, transparent); }
+.wt-n {
+	width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+	background: var(--control-bg, #f6f4f0); font-size: 11.5px; font-weight: 600; color: var(--text-light, #55585e);
+}
+.wt-body { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.wt-title { font-size: 13.5px; font-weight: 600; color: var(--text-color, #1b1c1e); }
+.wt-sum { font-size: 12px; color: var(--text-muted, #7a7e85); line-height: 1.35; }
+.wt-steps { font-size: 11px; color: var(--text-light, #9a9da3); white-space: nowrap; }
+.wt-play { color: var(--wt-accent); font-size: 11px; opacity: 0; transition: opacity .12s; }
+.wt-item:hover .wt-play, .wt-item.is-match .wt-play { opacity: 1; }
+
+/* ---- stage ---------------------------------------------------------- */
+.wt-cursor {
+	position: fixed; left: 0; top: 0; z-index: 1080;
+	pointer-events: none;
+	transition-property: transform;
+	transition-timing-function: cubic-bezier(.45, .05, .25, 1);
+	filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .28));
+	will-change: transform;
+}
+.wt-cursor svg { display: block; margin: -3px 0 0 -5px; transition: transform .12s ease-out; transform-origin: 5px 3px; }
+.wt-cursor.is-down svg { transform: scale(.82); }
+.wt-cursor[hidden], .wt-ring[hidden], .wt-cap[hidden] { display: none; }
+
+.wt-ripple {
+	position: fixed; z-index: 1079; pointer-events: none;
+	width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%;
+	border: 2px solid var(--wt-accent);
+	background: color-mix(in srgb, var(--wt-accent) 18%, transparent);
+	animation: wt-ripple .65s ease-out forwards;
+}
+@keyframes wt-ripple {
+	from { transform: scale(.3); opacity: 1; }
+	to   { transform: scale(1.6); opacity: 0; }
+}
+
+/* the spotlight: a ring around the target, the page dimmed around it */
+.wt-ring {
+	position: fixed; z-index: 1070; pointer-events: none;
+	border-radius: 10px;
+	border: 2px solid var(--wt-ring);
+	box-shadow: 0 0 0 9999px var(--wt-dim), 0 0 0 5px color-mix(in srgb, var(--wt-ring) 16%, transparent);
+	transition: left .35s ease, top .35s ease, width .35s ease, height .35s ease;
+}
+
+.wt-cap {
+	position: fixed; z-index: 1085;
+	width: var(--wt-cap-width); max-width: calc(100vw - 28px);
+	background: var(--wt-cap-bg); color: var(--wt-cap-text);
+	border-radius: var(--wt-radius); padding: 12px 14px 10px;
+	box-shadow: 0 14px 40px rgba(0, 0, 0, .28);
+	font-family: var(--wt-font);
+	transition: left .3s ease, top .3s ease;
+}
+.wt-cap-head { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; color: color-mix(in srgb, var(--wt-cap-text) 60%, transparent); }
+.wt-cap-t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wt-cap-say { font-size: 13.5px; line-height: 1.45; margin: 6px 0 10px; }
+.wt-cap-bar { height: 2px; background: color-mix(in srgb, var(--wt-cap-text) 14%, transparent); border-radius: 2px; overflow: hidden; }
+.wt-cap-bar i { display: block; height: 100%; width: 0; background: var(--wt-accent); transition: width .1s linear; }
+.wt-cap.is-paused .wt-cap-bar i { background: #f2c14e; }
+.wt-cap-btns { display: flex; gap: 6px; margin-top: 10px; }
+.wt-cap-btns button {
+	border: 1px solid color-mix(in srgb, var(--wt-cap-text) 25%, transparent); background: transparent; color: var(--wt-cap-text);
+	border-radius: 6px; padding: 3px 10px; font-size: 12px; cursor: pointer;
+}
+.wt-cap-btns button:hover { background: color-mix(in srgb, var(--wt-cap-text) 10%, transparent); }
+.wt-cap-btns [data-a="stop"] { margin-left: auto; }
+
+/* typing drawn over a field; never written to it */
+.wt-ghost {
+	position: fixed; z-index: 1075; pointer-events: none;
+	display: flex; align-items: center; padding: 0 10px;
+	background: #fff; border: 1px solid var(--wt-accent); border-radius: 8px;
+	font: 400 13px var(--wt-font); color: var(--text-color, #1b1c1e);
+	white-space: nowrap; overflow: hidden;
+}
+.wt-ghost::after {
+	content: ""; width: 1.5px; height: 16px; margin-left: 1px;
+	background: var(--text-color, #1b1c1e); animation: wt-caret 1s steps(1) infinite;
+}
+@keyframes wt-caret { 50% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+	.wt-ring, .wt-cap { transition: none; }
+	.wt-ripple { animation-duration: .2s; }
+}
+
+.wt-where { font-style: normal; color: var(--wt-accent); white-space: nowrap; }
+
+/* your turn: the bar gives way to a prompt, and the ring pulses */
+.wt-cap-tip { display: none; }
+.wt-cap.is-waiting .wt-cap-tip {
+	display: inline-flex; align-items: center; gap: 6px;
+	margin: -2px 0 10px; padding: 3px 9px; border-radius: 999px;
+	background: var(--wt-accent); color: #fff; font-size: 12px; font-weight: 600;
+}
+.wt-cap.is-waiting .wt-cap-tip::before { content: "\2328"; font-weight: 400; }
+.wt-cap.is-waiting .wt-cap-bar { display: none; }
+body:has(.wt-cap.is-waiting) .wt-ring {
+	box-shadow: 0 0 0 9999px var(--wt-dim), 0 0 0 5px color-mix(in srgb, var(--wt-ring) 20%, transparent);
+	animation: wt-pulse 1.6s ease-in-out infinite;
+}
+@keyframes wt-pulse { 50% { box-shadow: 0 0 0 9999px var(--wt-dim), 0 0 0 9px color-mix(in srgb, var(--wt-ring) 8%, transparent); } }
+/* the field itself stays clickable above the dim */
+body:has(.wt-cap.is-waiting) .wt-cursor { opacity: .35; }
+
+/* ---- panel, by page and by category ---------------------------------- */
+.wt-head-t { min-width: 0; flex: 1; }
+.wt-where { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.wt-filter {
+	margin: 0 18px 8px; height: 32px; padding: 0 12px; font-size: 12.5px;
+	border: 1px solid var(--border-color, #e0dcd4); border-radius: 8px; background: var(--control-bg, #f6f4f0);
+}
+.wt-filter:focus { outline: none; border-color: var(--wt-accent); background: #fff; }
+
+.wt-sec {
+	margin: 12px 10px 4px; font-size: 10.5px; font-weight: 600; letter-spacing: .06em;
+	text-transform: uppercase; color: var(--text-light, #9a9da3);
+}
+.wt-cat { margin: 0 0 2px; }
+.wt-cat-h {
+	width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+	border: 0; background: none; border-radius: 8px; cursor: pointer;
+	font: 600 13px var(--wt-font); color: var(--text-color, #1b1c1e); text-align: start;
+}
+.wt-cat-h:hover { background: var(--control-bg, #f6f4f0); }
+.wt-chev { font-size: 10px; color: var(--text-muted, #7a7e85); transition: transform .15s; }
+.wt-cat.is-open .wt-chev { transform: rotate(90deg); }
+.wt-count {
+	margin-inline-start: auto; font-size: 11px; font-weight: 500; color: var(--text-muted, #7a7e85);
+	background: var(--control-bg, #f6f4f0); border-radius: 999px; padding: 1px 8px;
+}
+.wt-cat-b { display: none; padding-inline-start: 6px; }
+.wt-cat.is-open .wt-cat-b { display: block; }
+
+.wt-steps { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.wt-kind {
+	font-size: 10px; font-weight: 600; letter-spacing: .02em; padding: 1px 6px; border-radius: 4px;
+	background: var(--control-bg, #f6f4f0); color: var(--text-light, #55585e);
+}
+.wt-kind.k-create { background: color-mix(in srgb, var(--wt-accent) 12%, transparent); color: var(--wt-accent); }
+.wt-kind.k-process { background: #eef2fb; color: #2f4a8a; }
+.wt-kind.k-board, .wt-kind.k-tour { background: #f6efe1; color: #8a5a12; }
+.wt-kind.k-report { background: #f1eef8; color: #5b3f8f; }
+
+/* ---- right-to-left languages ------------------------------------------ */
+.wt-panel[dir="rtl"], .wt-cap[dir="rtl"] {
+	font-family: var(--wt-font), "Noto Sans Arabic", "Geeza Pro", "Segoe UI", Tahoma, sans-serif;
+}
+.wt-panel[dir="rtl"] .wt-item, .wt-panel[dir="rtl"] .wt-cat-h { text-align: right; }
+.wt-panel[dir="rtl"] .wt-steps { align-items: flex-start; }
+.wt-panel[dir="rtl"] .wt-play { transform: scaleX(-1); }
+.wt-panel[dir="rtl"] .wt-cat.is-open .wt-chev { transform: rotate(90deg); }
+.wt-panel[dir="rtl"] .wt-chev { transform: scaleX(-1); }
+.wt-cap[dir="rtl"] .wt-cap-btns [data-a="stop"] { margin-left: 0; margin-right: auto; }
+.wt-panel[dir="rtl"] .wt-filter, .wt-panel[dir="rtl"] .wt-ask input { text-align: right; }
+
+/* the language picker */
+.wt-lang {
+	margin: 2px 8px 0; height: 26px; padding: 0 6px; font-size: 12px; flex: none; max-width: 130px;
+	border: 1px solid var(--border-color, #e6e2da); border-radius: 8px; background: var(--card-bg, #fff);
+	color: var(--text-color, #1b1c1e);
+}
+
+/* panel on the left */
+body.wt-panel-left .wt-panel { right: auto; left: 16px; }
+
+/* pages without a page head get the button floating in a corner */
+.wt-btn.wt-float {
+	position: fixed; bottom: 20px; right: 20px; z-index: 1040; margin: 0;
+	box-shadow: 0 6px 18px rgba(0, 0, 0, .12); border-radius: 999px; padding: 6px 14px;
+}
+body.wt-panel-left .wt-btn.wt-float { right: auto; left: 20px; }
+body.wt-on .wt-btn.wt-float { display: none; }
