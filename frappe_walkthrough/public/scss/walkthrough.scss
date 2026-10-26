@@ -244,3 +244,22 @@ body.wt-panel-left .wt-panel { right: auto; left: 16px; }
 }
 body.wt-panel-left .wt-btn.wt-float { right: auto; left: 20px; }
 body.wt-on .wt-btn.wt-float { display: none; }
+
+/* ---- recorder --------------------------------------------------------- */
+.wt-foot { padding: 10px 18px 14px; border-top: 1px solid var(--border-color, #e6e2da); }
+.wt-rec-dot {
+	display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #dc2626; vertical-align: middle;
+}
+.wt-rec-bar {
+	position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1065;
+	display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 14px;
+	background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e6e2da); border-radius: 999px;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, .14); font-size: 13px;
+	.wt-rec-dot { animation: wt-rec 1.2s ease-in-out infinite; }
+	.wt-rec-n { color: var(--text-muted, #7a7e85); }
+}
+@keyframes wt-rec { 50% { opacity: .3; } }
+
+/* settings: drafts */
+.wt-draft { display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--border-color, #eee); }
+.wt-draft-b { display: flex; gap: 4px; flex: none; }

@@ -1,6 +1,7 @@
 """What the browser calls."""
 
 import json
+import re
 
 import frappe
 import requests
@@ -116,7 +117,8 @@ def get(key, lang=None):
 	"""One walkthrough, with its steps, in the viewer's language."""
 	lang = _lang(lang)
 	doc = frappe.get_doc("Walkthrough", key)
-	if not doc.enabled:
+	# drafts are switched off; those who review them can still play and check them
+	if not doc.enabled and not ({"System Manager", "Walkthrough Manager"} & set(frappe.get_roles())):
 		frappe.throw(frappe._("This walkthrough is switched off."))
 	return {
 		"key": doc.name, "kind": doc.kind, "category": doc.category,
@@ -256,3 +258,89 @@ def test_writer():
 		return {"ok": bool(items), "message": ", ".join(f'{i.get("en")} → {i.get("tr")}' for i in items) or json.dumps(got)[:200]}
 	except Exception as exc:
 		return {"ok": False, "message": str(exc)[:300]}
+
+
+# ------------------------------------------------------------------ drafts: AI-made process walkthroughs
+
+@frappe.whitelist()
+def drafts():
+	"""Process walkthroughs waiting for review, and the last check of each."""
+	_admin()
+	rows = frappe.get_all("Walkthrough", filters={"source": ["in", ["AI", "Generated"]], "kind": "Process"},
+	                      fields=["name", "title", "category", "enabled", "is_edited", "check_result", "checked_on", "source"],
+	                      order_by="enabled asc, sort_order asc")
+	counts = {r.parent: r.n for r in frappe.db.sql(
+		"select parent, count(*) n from `tabWalkthrough Step` group by parent", as_dict=True)}
+	for r in rows:
+		r["steps"] = counts.get(r.name, 0)
+	return rows
+
+
+@frappe.whitelist()
+def save_check(key, ok, result):
+	_admin()
+	frappe.db.set_value("Walkthrough", key, {"check_result": (("OK" if int(ok) else "Problems") + ": " + (result or ""))[:1000],
+	                                          "checked_on": frappe.utils.now_datetime()}, update_modified=False)
+	return True
+
+
+@frappe.whitelist()
+def switch(key, on):
+	_admin()
+	doc = frappe.get_doc("Walkthrough", key)
+	doc.enabled = 1 if int(on) else 0
+	doc.flags.from_load = True          # switching on is not an edit of its steps
+	doc.save(ignore_permissions=True)
+	return doc.enabled
+
+
+# ------------------------------------------------------------------ the recorder
+
+ACTIONS = {"go", "open", "new", "click", "point", "input", "fill", "save", "submit", "make", "tab", "type", "key", "say"}
+
+
+@frappe.whitelist()
+def draft_captions(title, steps, lang=None):
+	"""The Writer's captions for a recorded walkthrough: {captions: [...], summary}."""
+	frappe.only_for(("System Manager", "Walkthrough Manager"))
+	from frappe_walkthrough import writer
+	steps = json.loads(steps) if isinstance(steps, str) else steps
+	if not writer.configured():
+		return {}
+	plain = [{k: st.get(k) for k in ("action", "target", "route", "ref_doctype", "label")} for st in steps]
+	try:
+		got = writer.complete(
+			"Someone recorded themselves doing a task in a business system, as the steps below. Write the guided "
+			"walkthrough's words: `summary` (one plain sentence on what it teaches, in the words its users would use) "
+			"and `captions` - one short caption per step, in the same order and the same number, said to the viewer "
+			"('Choose the customer.', 'Save it - then Create → Delivery Note.'). Field targets look like "
+			"field:<fieldname>; routes are desk paths.",
+			{"title": title, "steps": plain})
+	except Exception as exc:
+		frappe.log_error(title="Walkthrough writer: recorded captions")
+		return {"error": str(exc)[:200]}
+	caps = got.get("captions") or []
+	return {"summary": got.get("summary") or "", "captions": [str(c) for c in caps][:len(steps)]}
+
+
+@frappe.whitelist()
+def save_recorded(title, steps, category=None, kind="Process", summary=None, contexts=None):
+	"""A walkthrough someone recorded, saved and switched on."""
+	frappe.only_for(("System Manager", "Walkthrough Manager"))
+	steps = json.loads(steps) if isinstance(steps, str) else steps
+	contexts = json.loads(contexts) if isinstance(contexts, str) else (contexts or [])
+	clean = []
+	for st in steps:
+		if st.get("action") not in ACTIONS:
+			continue
+		clean.append({k: st.get(k) for k in ("action", "target", "route", "ref_doctype", "label", "text", "say")})
+	if not clean:
+		frappe.throw(frappe._("Nothing was recorded."))
+	key = "recorded-" + re.sub(r"[^a-z0-9]+", "-", (title or "").lower()).strip("-")[:60]
+	if frappe.db.exists("Walkthrough", key):
+		key += "-" + frappe.generate_hash(length=4)
+	doc = frappe.get_doc({"doctype": "Walkthrough", "key": key, "title": title, "kind": kind or "Process",
+	                      "category": category or "", "summary": summary or "", "enabled": 1, "source": "Recorded",
+	                      "contexts": "\n".join(dict.fromkeys(contexts)), "steps": clean})
+	doc.insert(ignore_permissions=True)
+	return doc.name

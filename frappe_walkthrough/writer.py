@@ -133,10 +133,22 @@ def translate(texts, lang, kind="UI labels and short sentences of a business sys
 			frappe.log_error(title=f"Walkthrough writer: translate to {lang}")
 			break
 		for it in got.get("items") or []:
-			if it.get("en") in chunk and (it.get("tr") or "").strip():
-				out[it["en"]] = mem[k + it["en"]] = it["tr"].strip()
+			tr = _translation_of(it)
+			if it.get("en") in chunk and tr:
+				out[it["en"]] = mem[k + it["en"]] = tr
 		_remember(mem)
 	return out
+
+
+def _translation_of(item):
+	"""The translation in an answer item - under `tr`, or (models vary) under
+	the language's own code or any other key."""
+	if not isinstance(item, dict):
+		return ""
+	val = item.get("tr")
+	if not val:
+		val = next((v for k, v in item.items() if k != "en" and isinstance(v, str) and v.strip()), "")
+	return (val or "").strip()
 
 
 # ------------------------------------------------------------------ during Load

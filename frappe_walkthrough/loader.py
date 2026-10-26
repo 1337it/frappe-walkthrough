@@ -107,10 +107,15 @@ def upsert(w):
 		doc = frappe.get_doc("Walkthrough", name)
 		if doc.is_edited:
 			return "kept"
+		# switched off by an earlier Load (no longer produced then) and produced again:
+		# back on - drafts excepted, and anything switched off by hand is marked edited above
+		if not doc.enabled and not w.get("draft"):
+			doc.enabled = 1
 	else:
 		doc = frappe.new_doc("Walkthrough")
 		doc.key = name
-		doc.enabled = 1
+		# a draft starts switched off; after that, on or off is the admin's call
+		doc.enabled = 0 if w.get("draft") else 1
 	for f in FIELDS:
 		if f in w:
 			doc.set(f, w[f])
@@ -142,6 +147,9 @@ def run(user=None):
 			writer.fill_templates()
 			writer.fill_terms(generator.scope(s))
 		ws = generator.generated(s)
+		if s.get("include_processes", 1):
+			from frappe_walkthrough import processes
+			ws += processes.generated(s, progress=lambda ph: _progress(phase=ph))
 		ws += from_apps()
 		if writer.configured(s):
 			_progress(phase="Writing summaries and translations")
@@ -159,7 +167,7 @@ def run(user=None):
 			if i % 20 == 0:
 				frappe.db.commit()
 				_progress(done=i + 1)
-		stale = frappe.get_all("Walkthrough", filters={"source": ["in", ["Generated", "App"]], "enabled": 1,
+		stale = frappe.get_all("Walkthrough", filters={"source": ["in", ["Generated", "App", "AI"]], "enabled": 1,
 		                                               "is_edited": 0, "name": ["not in", list(seen) or [""]]}, pluck="name")
 		for n in stale:
 			frappe.db.set_value("Walkthrough", n, "enabled", 0, update_modified=False)
@@ -181,7 +189,7 @@ def clear_cache():
 
 
 def remove_generated():
-	names = frappe.get_all("Walkthrough", filters={"source": "Generated", "is_edited": 0}, pluck="name")
+	names = frappe.get_all("Walkthrough", filters={"source": ["in", ["Generated", "AI"]], "is_edited": 0}, pluck="name")
 	for n in names:
 		frappe.delete_doc("Walkthrough", n, ignore_permissions=True, force=True)
 	clear_cache()

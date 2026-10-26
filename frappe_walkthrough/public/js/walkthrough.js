@@ -180,6 +180,7 @@ WT.panel = function () {
 		if (act === "close") WT.close_panel();
 		else if (act === "cat") WT.toggle_cat(t.closest(".wt-cat"));
 		else if (act === "play") WT.play_key(t.dataset.key);
+		else if (act === "record") frappe_walkthrough.recorder.start();
 	});
 	el.addEventListener("change", (e) => {
 		if (e.target.matches(".wt-lang")) WT.set_lang(e.target.value);
@@ -230,7 +231,9 @@ WT.render_panel = function () {
 			'" autocomplete="off"><button type="submit">' + esc(WT.t("Ask")) + "</button>" +
 			'<div class="wt-ask-note"></div></form>' : "") +
 		'<input class="wt-filter" type="search" placeholder="' + esc(WT.t("Filter…")) + '">' +
-		'<div class="wt-list">' + (d ? "" : '<div class="wt-empty">…</div>') + "</div>";
+		'<div class="wt-list">' + (d ? "" : '<div class="wt-empty">…</div>') + "</div>" +
+		(CFG().can_record ? '<div class="wt-foot"><button type="button" class="btn btn-xs btn-default" data-act="record">' +
+			'<span class="wt-rec-dot"></span> ' + esc(WT.t("Record a walkthrough")) + "</button></div>" : "");
 	WT.apply_lang();
 	if (d) WT.render_list("");
 };
@@ -462,6 +465,11 @@ WT.find = function (spec) {
 		case "btn":
 			return all(`${page} .page-head button, ${page} .page-head a.btn`)
 				.find((e) => e.textContent.trim().toLowerCase().includes(__(arg).toLowerCase())) || null;
+		case "menu": {        // menu:<group>/<item> - the group's button (its item is found by WT.act.make)
+			const group = arg.split("/")[0];
+			return all(`${page} .page-head .inner-group-button[data-label="${encodeURIComponent(__(group))}"] > button, ` +
+				`${page} .page-head .inner-group-button[data-label="${encodeURIComponent(group)}"] > button`)[0] || null;
+		}
 		case "primary":
 			return all(`${page} .page-head .primary-action`)[0] || null;
 		case "title":
@@ -480,6 +488,18 @@ WT.find = function (spec) {
 			return all(arg)[0] || null;
 	}
 	return null;
+};
+
+/* A field on a tab that is not open: open the tab first, visibly. */
+WT.to_field_tab = async function (fieldname, show) {
+	const frm = window.cur_frm;
+	const f = frm && frm.fields_dict && frm.fields_dict[fieldname];
+	if (!f || !f.tab || !f.tab.is_active || f.tab.is_active()) return false;
+	const link = f.tab.tab_link && f.tab.tab_link.find(".nav-link")[0];
+	if (show && link && WT.visible(link)) await WT.act.click({ say: WT.t("The {0} tab.", [__(f.tab.df.label || "")]) }, link);
+	else f.tab.set_active();
+	await WT.sleep(250);
+	return true;
 };
 
 WT.wait_for = async function (spec, ms) {
@@ -739,6 +759,39 @@ WT.act = {
 		}
 	},
 
+	/* The next document, made from this one: open the Create menu, pick it,
+	   and the new form opens with everything carried over. The menu appears
+	   once the document is saved (or submitted), so it is waited for. */
+	async make(step) {
+		const [group, ...rest] = String(step.target || "").replace(/^menu:/, "").split("/");
+		const item = rest.join("/");
+		const btn = await WT.wait_for("menu:" + group + "/" + item, 8000);
+		if (!btn) {
+			// the menu comes once the document is saved and submitted: without that, this part cannot be shown
+			WT.caption(WT.t("Save and submit it first - then Create → {0} appears.", [__(item)]));
+			await WT.sleep(2500);
+			return false;
+		}
+		const from = window.cur_frm && cur_frm.doc && cur_frm.doc.name;
+		await WT.act.click({ say: step.say }, btn);
+		const wrap = btn.closest(".inner-group-button");
+		const li = await WT.wait_for(() => [...wrap.querySelectorAll(".dropdown-item")].find((a) =>
+			WT.visible(a) && [encodeURIComponent(__(item)), encodeURIComponent(item)].includes(a.getAttribute("data-label"))) || null, 3000);
+		if (!li) { WT.caption(step.say); return false; }
+		const c = WT.center(li);
+		await WT.move_to(c.x, c.y);
+		WT.ring(li);
+		await WT.press(c.x, c.y);
+		li.click();
+		WT.ring(null);
+		// some open a small dialog first (which items, which date): the viewer answers it
+		await WT.wait_for(() => {
+			if (window.cur_frm && cur_frm.doc && cur_frm.doc.name !== from && (!step.doctype || cur_frm.doctype === step.doctype)) return document.body;
+			return null;
+		}, 15000);
+		await WT.sleep(700);
+	},
+
 	async tab(step) {
 		const el = await WT.wait_for("tab:" + step.label, 4000);
 		if (!el) { WT.caption(step.say); return; }
@@ -757,6 +810,7 @@ WT.act = {
 	   player waits. Enter (Tab) moves on; a choice moves on when chosen; a
 	   table waits for Next, since rows are added by clicking. */
 	async input(step) {
+		await WT.to_field_tab(String(step.target || "").replace(/^field:/, ""), true);
 		const ctl = await WT.wait_for(step.target, 5000);
 		if (!ctl) { WT.caption(step.say); await WT.sleep(1200); return; }   // hidden by the form's own rules
 		await WT.bring_into_view(ctl);
@@ -812,7 +866,8 @@ WT.act = {
 				if (!df.fieldname || asked.has(df.fieldname) || WT.covered.has(df.fieldname)) return false;
 				if (!df.reqd || df.read_only || df.hidden || df.fieldname === "naming_series") return false;
 				if (["Section Break", "Column Break", "Tab Break", "HTML", "Button"].includes(df.fieldtype)) return false;
-				if (!WT.visible(fld.wrapper && (fld.wrapper[0] || fld.wrapper))) return false;
+				if (!WT.visible(fld.wrapper && (fld.wrapper[0] || fld.wrapper)) && !(fld.tab && fld.tab.is_active && !fld.tab.is_active()
+					&& fld.disp_status !== "None")) return false;
 				const v = frm.doc[df.fieldname];
 				return v === undefined || v === null || v === "" || (Array.isArray(v) && !v.length);
 			});
@@ -952,7 +1007,7 @@ WT.wait_user = function (box, kind, frm, ctl, fieldname) {
 WT.created = [];
 WT.ghosts = [];
 WT.covered = new Set();
-WT.INTERACTIVE = new Set(["input", "fill", "save", "submit"]);
+WT.INTERACTIVE = new Set(["input", "fill", "save", "submit", "make"]);
 WT.stopped = () => !WT.playing || WT.playing.stopped;
 WT.dwell = (text) => (WT.reduced ? 1200 : Math.min(7000, 1800 + (text || "").length * 42) * WT.speed());
 
@@ -991,7 +1046,11 @@ WT.play = async function (item) {
 		p.skip = false;
 		while (p.paused && !p.stopped) await WT.sleep(150);
 		try {
-			await (WT.act[step.do] || WT.act.say)(step);
+			const done = await (WT.act[step.do] || WT.act.say)(step);
+			if (done === false && step.do === "make") {
+				// nothing was made: skip that document's steps, up to the next one made or opened
+				while (p.i + 1 < item.steps.length && !["make", "go", "new", "open", "say"].includes(item.steps[p.i + 1].do)) p.i++;
+			}
 		} catch (e) {
 			console.warn("walkthrough step failed", step, e);     // a demo should not die
 		}
@@ -1080,6 +1139,61 @@ $(document).on("app_ready", function () {
 	}, true);
 	window.addEventListener("resize", () => WT.playing && WT.ring(null));
 });
+
+/* Check a walkthrough without playing it for real: open each page and each
+   new form it uses and look for every field, tab and button it points at.
+   Nothing is saved - the blank forms are thrown away. Returns {ok, notes}. */
+WT.check = async function (key, back) {
+	const w = await frappe.xcall("frappe_walkthrough.api.get", { key });
+	const notes = [];
+	let dt = null;
+	const opened = [];
+	const open_new = async (doctype) => {
+		await new Promise((res) => frappe.model.with_doctype(doctype, res));
+		const doc = frappe.model.get_new_doc(doctype);
+		opened.push(doc);
+		frappe.set_route("Form", doctype, doc.name);
+		const ok = await WT.wait_for(() => (window.cur_frm && cur_frm.doc && cur_frm.doc.name === doc.name ? document.body : null), 8000);
+		if (!ok) notes.push(__("{0}: the form did not open", [doctype]));
+		await WT.sleep(500);
+	};
+	WT.playing = { item: w, stopped: false, check: true };       // lets wait_for run
+	try {
+		for (const [i, st] of w.steps.entries()) {
+			const n = `#${i + 1} ${st.action}`;
+			if (st.action === "go") {
+				frappe.set_route(WT.rel(st.route));
+				const ok = await WT.wait_for(() => (WT.route_is(st.route) ? document.body : null), 8000);
+				if (!ok) notes.push(`${n}: ${st.route} ${__("did not open")}`);
+				await WT.sleep(400);
+			} else if (st.action === "new" || st.action === "make" || st.action === "open") {
+				dt = st.ref_doctype;
+				if (!dt) { notes.push(`${n}: ${__("no DocType")}`); continue; }
+				await new Promise((res) => frappe.model.with_doctype(dt, res));
+				if (!frappe.model.can_create(dt)) { notes.push(`${n}: ${__("no permission to create {0}", [dt])}`); continue; }
+				await open_new(dt);
+			} else if (st.action === "input") {
+				const f = String(st.target || "").replace(/^field:/, "");
+				const frm = window.cur_frm;
+				if (!frm || !frm.fields_dict[f]) notes.push(`${n}: ${__("no field {0} on {1}", [f, dt || "?"])}`);
+				else {
+					await WT.to_field_tab(f, false);
+					if (!WT.find(st.target)) notes.push(`${n}: ${__("{0} is hidden until other fields are filled", [f])}`);
+				}
+			} else if (st.action === "tab") {
+				if (!WT.find("tab:" + st.label)) notes.push(`${n}: ${__("no tab {0}", [st.label])}`);
+			} else if (["click", "point", "type"].includes(st.action) && st.target && !/^(primary|row|title|filters|menu|report-|sidebar|search)/.test(st.target)) {
+				if (!(await WT.wait_for(st.target, 2500))) notes.push(`${n}: ${__("{0} not found", [st.target])}`);
+			}
+		}
+	} finally {
+		WT.playing = null;
+		if (back) { await frappe.set_route(back); await WT.sleep(400); }
+		opened.forEach((d) => { try { frappe.model.remove_from_locals(d.doctype, d.name); } catch (e) { /* gone */ } });
+	}
+	const hard = notes.filter((x) => !/hidden until/.test(x));
+	return { ok: !hard.length, notes };
+};
 
 /* For the settings page's Preview button: the stage with the current design. */
 WT.preview = async function (design) {

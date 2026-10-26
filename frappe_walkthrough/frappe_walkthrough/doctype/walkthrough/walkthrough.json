@@ -61,7 +61,7 @@
    "fieldname": "source",
    "fieldtype": "Select",
    "label": "Source",
-   "options": "Manual\nGenerated\nApp\nForm Tour",
+   "options": "Manual\nGenerated\nApp\nForm Tour\nAI\nRecorded",
    "default": "Manual",
    "read_only": 1,
    "in_standard_filter": 1
@@ -115,6 +115,19 @@
    "read_only": 1
   },
   {
+   "fieldname": "checked_on",
+   "fieldtype": "Datetime",
+   "label": "Checked on",
+   "read_only": 1
+  },
+  {
+   "fieldname": "check_result",
+   "fieldtype": "Small Text",
+   "label": "Check result",
+   "read_only": 1,
+   "description": "From Check drafts: every step's target found on the real screen, or what was not."
+  },
+  {
    "fieldname": "sb_steps",
    "fieldtype": "Section Break",
    "label": "Steps"
@@ -155,6 +168,8 @@
   "cb2",
   "source_doctype",
   "source_report",
+  "checked_on",
+  "check_result",
   "sb_steps",
   "steps",
   "sb_tr",
@@ -172,6 +187,16 @@
    "import": 1,
    "print": 1,
    "email": 1,
+   "share": 1
+  },
+  {
+   "role": "Walkthrough Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
    "share": 1
   },
   {

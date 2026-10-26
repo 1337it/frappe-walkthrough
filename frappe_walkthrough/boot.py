@@ -40,4 +40,6 @@ def boot_session(bootinfo):
 		"lang": lang,
 		"ui": i18n.ui_strings(lang),
 		"rtl": lang.split("-")[0] in ("ar", "he", "fa", "ur", "ps", "sd", "ug", "yi"),
+		"can_record": bool({"System Manager", "Walkthrough Manager"} & set(frappe.get_roles())),
+		"writer": bool(s.writer_provider and s.writer_model),
 	}

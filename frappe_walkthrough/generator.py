@@ -1,7 +1,8 @@
 """Walkthroughs made from the site's own metadata.
 
 What is covered comes from Walkthrough Settings: the chosen modules (by
-default every module of the installed apps except Frappe and ERPNext core),
+default every module of the installed apps - ERPNext included - except
+Frappe's own: users, roles, system settings),
 narrowed - by default - to what the workspace sidebars actually list, since
 that is what people can reach. The workspace becomes the category.
 
@@ -23,7 +24,7 @@ from frappe.utils import strip_html
 from frappe_walkthrough.i18n import T, languages, split
 
 LAYOUT = {"Section Break", "Column Break", "Tab Break", "HTML", "Button", "Heading", "Fold", "Image"}
-CORE_APPS = {"frappe", "erpnext"}
+CORE_APPS = {"frappe"}          # its own modules: users, roles, settings
 SKIP_FIELDS = {"naming_series", "amended_from", "company", "currency"}
 
 # Every sentence the generator writes. Translations: i18n/<lang>.json.
@@ -63,6 +64,12 @@ TEMPLATES = [
 	"Search finds any list, report or record by name - press Ctrl + K from anywhere.",
 	"Walkthrough is on every page. It lists what can be done on that page first, then everything else.",
 	"Getting around",
+	# process walkthroughs (processes.py)
+	"From {0} to {1}",
+	"Make a {0} and carry it through: {1}.",
+	"Start with a new {0}.",
+	"Now the {0}: Create → {1} carries everything over from the {2}.",
+	"That is the whole chain, each document made from the one before.",
 ]
 
 # Interface strings of the panel and player (walkthrough.js), sent per language.
@@ -78,6 +85,27 @@ UI = [
 	"That is it. Open Walkthrough again for another.", "Open {0} from the sidebar.", "Open the {0} group.",
 	"{0} is not in the sidebar - search for it by name.", "Type its name and pick it from the results.",
 	"Nothing to show here yet.", "Process", "Create", "Read", "Report", "Board", "Tour", "Language",
+	"Record a walkthrough", "Recording", "steps", "Stop and save", "Cancel", "Title", "Category", "Kind", "Summary",
+	"Caption", "Write the captions", "Save walkthrough", "Draft",
+	"Throw this recording away?",
+	"Save and submit it first - then Create → {0} appears.",
+	"Open {0}.",
+	"Add a new {0}.",
+	"Open a {0}.",
+	"Choose the {0}.",
+	"Set the {0}.",
+	"Add the {0}.",
+	"Enter the {0}.",
+	"Save it.",
+	"Submit it.",
+	"Create → {0}.",
+	"The {0} tab.",
+	"Press {0}.",
+	"One plain sentence. The Ask box matches questions against it.",
+	"Steps",
+	"Action",
+	"Target",
+	"Saved. It is in the Walkthrough panel now.",
 ]
 
 

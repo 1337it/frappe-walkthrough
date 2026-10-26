@@ -47,6 +47,21 @@
    "description": "Deletes generated walkthroughs that were not edited by hand."
   },
   {
+   "fieldname": "cb_drafts",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "drafts_html",
+   "fieldtype": "HTML",
+   "label": "Drafts"
+  },
+  {
+   "fieldname": "check_drafts",
+   "fieldtype": "Button",
+   "label": "Check drafts",
+   "description": "Plays each draft's steps in this browser - quickly, without saving anything - and notes any target not found."
+  },
+  {
    "fieldname": "sb_scope",
    "fieldtype": "Section Break",
    "label": "What to cover"
@@ -56,12 +71,12 @@
    "fieldtype": "Table MultiSelect",
    "label": "Modules",
    "options": "Walkthrough Settings Module",
-   "description": "Leave empty for every module of your installed apps (Frappe and ERPNext core are added by the tick below)."
+   "description": "Leave empty for every module of your installed apps, ERPNext and HR included."
   },
   {
    "fieldname": "include_core",
    "fieldtype": "Check",
-   "label": "Include Frappe and ERPNext core modules"
+   "label": "Include Frappe's own modules (users, roles, settings)"
   },
   {
    "fieldname": "extra_doctypes",
@@ -122,6 +137,18 @@
    "fieldtype": "Check",
    "label": "The \"Find your way around\" tour",
    "default": "1"
+  },
+  {
+   "fieldname": "include_processes",
+   "fieldtype": "Check",
+   "label": "Process walkthroughs",
+   "default": "1",
+   "description": "Follows each chain of documents - quotation, order, delivery, invoice - from the Create buttons and links between your DocTypes. Made as drafts to review."
+  },
+  {
+   "fieldname": "processes_live",
+   "fieldtype": "Check",
+   "label": "Switch process walkthroughs on without review"
   },
   {
    "fieldname": "sb_lang",
@@ -425,6 +452,9 @@
   "cb_load",
   "import_form_tours",
   "remove_generated",
+  "cb_drafts",
+  "drafts_html",
+  "check_drafts",
   "sb_scope",
   "modules",
   "include_core",
@@ -438,6 +468,8 @@
   "include_reports",
   "max_inputs",
   "include_tour",
+  "include_processes",
+  "processes_live",
   "sb_lang",
   "languages",
   "tab_ai",

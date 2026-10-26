@@ -7,6 +7,8 @@ Every desk page gets a **Walkthrough** button. Its panel lists what can be done 
 - **No jumping.** It reaches each screen the way a person would, through the sidebar or by typing the name into the search bar, so the viewer learns the way.
 - **Create walkthroughs are interactive.** They stop at each field and wait for the viewer to type, then ask for everything else the form requires, then wait for Save and Submit.
 - **Out of the box.** Walkthroughs are generated from your own DocTypes, reports and workspaces, including custom apps and custom fields.
+- **Process walkthroughs.** It follows your documents' own Create buttons, dashboards and links to find chains like Quotation → Sales Order → Delivery Note → Sales Invoice → Payment, and builds a walkthrough that carries one document into the next. These are drafts for you to check and switch on.
+- **Record your own.** Do the task once and it becomes a walkthrough: pages, new records, fields, Save, Submit, Create → next document. Captions are written for you.
 - **Any language.** Captions are built in every language you choose, using Frappe's own translations plus 24 shipped languages for the app's own sentences.
 - **Optional AI.**
   - An **Ask box** ("how do I invoice a customer?") where TypeSafe's Jev picks the right walkthrough. It only chooses from your list and never writes text.
@@ -39,12 +41,14 @@ Install runs a first **Load** in the background, so the button and walkthroughs 
 | **Load walkthroughs** | Builds everything in scope and adds walkthroughs that apps ship. Safe to run again: walkthroughs **edited by hand are never overwritten**; ones no longer produced are switched off, never deleted. Runs in the background with progress. |
 | Import Form Tours | Turns Frappe's own Form Tours into walkthroughs. |
 | Remove generated | Deletes generated walkthroughs that weren't edited. |
-| Modules | What to cover. Empty means every module of your installed apps; tick *Include Frappe and ERPNext core modules* to add those. |
+| Modules | What to cover. Empty means every module of your installed apps, ERPNext and HR included; tick *Include Frappe's own modules* to add users, roles and settings. |
 | Only DocTypes and reports listed in a workspace | On by default: covers what people can actually reach from the sidebar. Each workspace becomes a category. |
 | Also cover / Never cover | Add or remove individual DocTypes. |
 | No Create walkthrough for these | Records the system writes (logs, ledger entries), or that already have a hand-written Create walkthrough. They still get a Find-and-read one. |
 | Create / Find-and-read / Report walkthroughs | Which kinds to generate. |
 | Fields to ask for | How many key fields a Create walkthrough stops at before "anything else the form needs" (default 6). |
+| Process walkthroughs | Finds the chains of documents in scope, from Create buttons, dashboards and links back, scored by how much the site uses each document. With a Writer, it also picks the chains a business really follows, chooses the fields worth stopping at, and writes the words. Saved as **drafts** (switched off) unless *Switch process walkthroughs on without review* is ticked. |
+| Drafts, Check drafts | Lists the process walkthroughs with Play, Edit and Switch on. **Check drafts** opens each draft's pages and new forms in your browser, looks for every field, tab and button it points at, and records the result. Nothing is saved. |
 | The "Find your way around" tour | A short generic tour of the sidebar, search and this button. |
 | Languages | Captions are built in each. Empty means the system language plus your users' languages. |
 
@@ -57,6 +61,16 @@ Install runs a first **Load** in the background, so the button and walkthroughs 
 | Write summaries | One plain sentence for DocTypes and reports that have no description. |
 | Translate captions | Fills labels Frappe can't translate (a custom app's own words), the app's sentences for languages it doesn't ship, and hand-written captions. |
 | Test buttons | Check the Jev key and the writer. |
+
+### Recording a walkthrough
+System Managers and anyone with the **Walkthrough Manager** role see **Record a walkthrough** at the bottom of the panel.
+
+1. Start recording; a bar at the top counts the steps.
+2. Do the task as you normally would.
+3. Press Stop. The steps appear with a caption each, written from the field labels. With a Writer set up, *Write the captions* asks it for better ones.
+4. Name it and save. It's switched on straight away.
+
+The recorder also handles quick-entry dialogs, and it carries on if the page reloads.
 
 ### Design
 Button label, which page types show it (workspaces, lists, forms, reports, other pages), and which roles see it. Panel side and width. Accent colour and font. Cursor colour and size. Highlight-ring colour and how much to dim the page. Caption background, text colour, width and corner radius. Speed (slow / normal / fast) and reduced motion. **Preview the design** plays a short demo with the values on the form, saved or not.
@@ -112,6 +126,7 @@ You can give any language next to the English: `title_<lang>`, `summary_<lang>`,
 | `input` | `target` | Clicks into the field and **waits** for the viewer: Enter (Ctrl+Enter in text areas), a choice, a date, or Next for tables. |
 | `fill` | none | Every still-empty required field, in form order, re-checked after each answer. |
 | `save` / `submit` | none | Points at the button and waits until the document is saved or submitted. |
+| `make` | `target` (`menu:<group>/<item>`), `ref_doctype` | Opens the form's Create menu, picks the item, and waits for the new document, with everything carried over. If the menu isn't there because the document wasn't saved and submitted, it says so and skips that document's steps. |
 | `tab` | `label` | Opens a form tab. |
 | `type` | `target`, `text` | Draws text over a field without setting it (read-only demos). |
 | `key` | `text` | `Escape` closes dialogs. |
@@ -120,7 +135,7 @@ You can give any language next to the English: `title_<lang>`, `summary_<lang>`,
 | Target | Finds |
 |---|---|
 | `field:<fieldname>` | A form field on the visible page |
-| `tab:<label>`, `btn:<text>` | A form tab, a page-head button |
+| `tab:<label>`, `btn:<text>`, `menu:<group>/<item>` | A form tab, a page-head button, a Create-menu item |
 | `primary`, `title`, `row`, `filters`, `menu` | The page's primary action, title, first list row, filter area, menu |
 | `report-filters`, `report-table` | A query report's filters and table |
 | `sidebar`, `sidebar:<label>`, `search` | The sidebar, a sidebar item, the search bar |
@@ -169,6 +184,8 @@ Right-to-left languages switch the panel and captions to RTL. Viewers can switch
 
 - `frappe_walkthrough.qa.session.sid`: a desk session id for a headless browser.
 - `frappe_walkthrough.qa.writer_check.run`: checks the Writer.
+- `frappe_walkthrough.qa.process_check.run --kwargs '{"app": "erpnext"}'`: prints the document chains the process finder sees (writes nothing).
+- `frappe_walkthrough.qa.form_tour_check.run`: imports a throwaway Form Tour, checks the result, and removes both.
 - `frappe_walkthrough.qa.build_i18n.run`: tops up the shipped translations (maintainers).
 
 To check playback, play each walkthrough in a headless browser and press Next whenever the player waits. Fail on any target not found, any `go` that doesn't land on its route, and any JS error.

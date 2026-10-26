@@ -5,6 +5,7 @@ const API = "frappe_walkthrough.api.";
 frappe.ui.form.on("Walkthrough Settings", {
 	refresh(frm) {
 		frm.trigger("show_status");
+		frm.trigger("show_drafts");
 		if (!frm._wt_realtime) {
 			frm._wt_realtime = true;
 			frappe.realtime.on("walkthrough_load", (st) => frm.events.paint_status(frm, st));
@@ -44,6 +45,48 @@ frappe.ui.form.on("Walkthrough Settings", {
 		frm.events.paint_status(frm, Object.assign({ counts_now: {} }, st));
 		frappe.show_alert({ message: __("Loading walkthroughs in the background…"), indicator: "blue" });
 		setTimeout(() => frm.trigger("show_status"), 2000);
+	},
+
+	/* Process walkthroughs waiting for review: play, open, switch on. */
+	async show_drafts(frm) {
+		const esc = frappe.utils.escape_html;
+		const rows = await frappe.xcall(API + "drafts");
+		const $w = frm.get_field("drafts_html").$wrapper;
+		if (!rows.length) { $w.html(`<div class="text-muted small">${esc(__("No process walkthroughs yet - press Load walkthroughs."))}</div>`); return; }
+		$w.html(`<div class="wt-drafts"><div class="small text-muted" style="margin-bottom:6px">${esc(__("Process walkthroughs"))} (${rows.length})</div>` +
+			rows.map((r) => `<div class="wt-draft" data-key="${esc(r.name)}">
+				<div class="wt-draft-t"><b>${esc(r.title)}</b> <span class="text-muted small">${esc(r.category || "")} · ${r.steps} ${esc(__("steps"))}${r.source === "AI" ? " · AI" : ""}</span>
+				${r.check_result ? `<div class="small ${/^OK/.test(r.check_result) ? "text-success" : "text-danger"}">${esc(r.check_result)}</div>` : ""}</div>
+				<div class="wt-draft-b">
+					<button class="btn btn-xs btn-default" data-d="play">${esc(__("Play"))}</button>
+					<a class="btn btn-xs btn-default" href="/app/walkthrough/${encodeURIComponent(r.name)}">${esc(__("Edit"))}</a>
+					<button class="btn btn-xs ${r.enabled ? "btn-default" : "btn-primary"}" data-d="switch" data-on="${r.enabled ? 0 : 1}">${esc(r.enabled ? __("Switch off") : __("Switch on"))}</button>
+				</div></div>`).join("") + "</div>");
+		$w.find("[data-d]").on("click", async (e) => {
+			const b = e.currentTarget, key = b.closest(".wt-draft").dataset.key;
+			if (b.dataset.d === "play") frappe_walkthrough.wt.play_key(key);
+			if (b.dataset.d === "switch") { await frappe.xcall(API + "switch", { key, on: b.dataset.on }); frm.trigger("show_drafts"); }
+		});
+	},
+
+	/* Each draft's pages, forms, fields and buttons, looked for in this browser. */
+	async check_drafts(frm) {
+		const rows = await frappe.xcall(API + "drafts");
+		if (!rows.length) return;
+		const back = frappe.get_route();
+		const d = frappe.show_progress(__("Checking"), 0, rows.length, __("Opening pages and forms…"));
+		let bad = 0;
+		for (const [i, r] of rows.entries()) {
+			frappe.show_progress(__("Checking"), i, rows.length, r.title);
+			let res;
+			try { res = await frappe_walkthrough.wt.check(r.name, back); } catch (e) { res = { ok: false, notes: [String(e)] }; }
+			if (!res.ok) bad++;
+			await frappe.xcall(API + "save_check", { key: r.name, ok: res.ok ? 1 : 0, result: res.notes.join("; ") || __("every step found") });
+		}
+		frappe.hide_progress();
+		await frappe.set_route("Form", "Walkthrough Settings");
+		frappe.show_alert({ message: __("{0} checked, {1} with problems", [rows.length, bad]), indicator: bad ? "orange" : "green" });
+		setTimeout(() => frm.reload_doc(), 800);
 	},
 
 	remove_generated(frm) {

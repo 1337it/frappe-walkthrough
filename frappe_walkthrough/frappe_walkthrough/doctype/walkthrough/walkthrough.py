@@ -20,7 +20,7 @@ NEEDS = {
 
 class Walkthrough(Document):
 	def validate(self):
-		if not self.flags.from_load and not self.is_new() and self.source in ("Generated", "App", "Form Tour"):
+		if not self.flags.from_load and not self.is_new() and self.source in ("Generated", "App", "Form Tour", "AI"):
 			self.is_edited = 1
 		for row in self.steps:
 			for field, actions in NEEDS.items():

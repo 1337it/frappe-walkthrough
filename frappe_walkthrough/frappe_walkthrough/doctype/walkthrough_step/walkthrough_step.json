@@ -13,7 +13,7 @@
    "fieldname": "action",
    "fieldtype": "Select",
    "label": "Action",
-   "options": "go\nopen\nnew\nclick\npoint\ninput\nfill\nsave\nsubmit\ntab\ntype\nkey\nsay",
+   "options": "go\nopen\nnew\nclick\npoint\ninput\nfill\nsave\nsubmit\nmake\ntab\ntype\nkey\nsay",
    "reqd": 1,
    "in_list_view": 1,
    "columns": 1,
@@ -25,7 +25,7 @@
    "label": "Target",
    "in_list_view": 1,
    "columns": 2,
-   "description": "field:&lt;fieldname&gt;, tab:&lt;label&gt;, btn:&lt;text&gt;, sidebar:&lt;label&gt;, primary, row, filters or css:&lt;selector&gt;"
+   "description": "field:&lt;fieldname&gt;, tab:&lt;label&gt;, btn:&lt;text&gt;, menu:&lt;group&gt;/&lt;item&gt;, sidebar:&lt;label&gt;, primary, row, filters or css:&lt;selector&gt;"
   },
   {
    "fieldname": "route",
