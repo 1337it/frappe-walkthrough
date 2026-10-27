@@ -1,5 +1,9 @@
 # Frappe Walkthrough
 
+![A Create walkthrough playing: the panel, the cursor reaching the list through the sidebar, Add, then waiting at each field while the viewer types](docs/walkthrough-demo.gif)
+
+*"Create a Fleet Vehicle", generated from the DocType itself: the cursor goes to the list through the sidebar and presses Add. At each field it waits for the viewer to type, then points at Save.*
+
 Animated walkthroughs for any Frappe or ERPNext desk, with optional AI help.
 
 Every desk page gets a **Walkthrough** button. Its panel lists what can be done on that page first, then every walkthrough by category. Playing one moves an animated cursor across the real screen: it glides to each control, shows the press, and really clicks it.
